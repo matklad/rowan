@@ -11,11 +11,18 @@ edition = "2018"
 rustc-hash = "1.0.1"
 text-size = "1.0.0"
 smol_str = "0.1.10"
-serde = { version = "1.0.89", optional = true, default-features = false }
 thin-dst = "1.0.0"
+
+[dependencies.serde_] # renamed so feature flag can be "serde"
+package = "serde"
+version = "1.0.89"
+optional = true
+default-features = false
 
 [dev-dependencies]
 m_lexer = "0.0.4"
 
 [features]
-serde1 = [ "serde", "text-size/serde" ]
+serde = ["serde_", "text-size/serde"]
+
+serde1 = [ "serde" ] # deprecated alias for feature "serde"

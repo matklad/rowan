@@ -16,7 +16,7 @@ pub mod cursor;
 pub mod api;
 mod syntax_text;
 mod utility_types;
-#[cfg(feature = "serde1")]
+#[cfg(feature = "serde")]
 mod serde_impls;
 
 // Reexport types for working with strings. We might be too opinionated about

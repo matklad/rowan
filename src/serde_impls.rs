@@ -1,4 +1,4 @@
-use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
+use serde_::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 use std::fmt;
 
 use crate::{
