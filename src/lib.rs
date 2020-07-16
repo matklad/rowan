@@ -9,8 +9,6 @@
 #![deny(unsafe_code)]
 
 #[allow(unsafe_code)]
-mod green;
-#[allow(unsafe_code)]
 pub mod cursor;
 
 pub mod api;
@@ -19,17 +17,18 @@ mod utility_types;
 #[cfg(feature = "serde1")]
 mod serde_impls;
 
-// Reexport types for working with strings. We might be too opinionated about
-// these, as a custom interner might work better, but `SmolStr` is a pretty good
-// default.
-pub use smol_str::SmolStr;
-pub use text_size::{TextLen, TextRange, TextSize};
+pub use sorbus::{
+    green::{
+        Builder as NodeCache, Checkpoint, Children, ChildrenWithOffsets, Node as GreenNode,
+        Token as GreenToken, TreeBuilder as GreenNodeBuilder,
+    },
+    ArcBorrow, Kind as SyntaxKind, NodeOrToken, TextRange, TextSize,
+};
 
 pub use crate::{
     api::{
         Language, SyntaxElement, SyntaxElementChildren, SyntaxNode, SyntaxNodeChildren, SyntaxToken,
     },
-    green::{Checkpoint, Children, GreenNode, GreenNodeBuilder, GreenToken, SyntaxKind},
     syntax_text::SyntaxText,
-    utility_types::{Direction, NodeOrToken, TokenAtOffset, WalkEvent},
+    utility_types::{Direction, TokenAtOffset, WalkEvent},
 };

@@ -13,7 +13,8 @@
 //!     - "+" Token(Add)
 //!     - "4" Token(Number)
 
-use rowan::{GreenNodeBuilder, NodeOrToken, SmolStr};
+use rowan::GreenNodeBuilder;
+use smol_str::SmolStr;
 use std::iter::Peekable;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -57,10 +58,10 @@ type SyntaxNode = rowan::SyntaxNode<Lang>;
 #[allow(unused)]
 type SyntaxToken = rowan::SyntaxToken<Lang>;
 #[allow(unused)]
-type SyntaxElement = rowan::NodeOrToken<SyntaxNode, SyntaxToken>;
+type SyntaxElement = rowan::SyntaxElement<Lang>;
 
 struct Parser<I: Iterator<Item = (SyntaxKind, SmolStr)>> {
-    builder: GreenNodeBuilder<'static>,
+    builder: GreenNodeBuilder,
     iter: Peekable<I>,
 }
 impl<I: Iterator<Item = (SyntaxKind, SmolStr)>> Parser<I> {
@@ -72,7 +73,7 @@ impl<I: Iterator<Item = (SyntaxKind, SmolStr)>> Parser<I> {
     }
     fn bump(&mut self) {
         if let Some((token, string)) = self.iter.next() {
-            self.builder.token(token.into(), string);
+            self.builder.token(token.into(), &string);
         }
     }
     fn parse_val(&mut self) {
@@ -114,14 +115,14 @@ fn print(indent: usize, element: SyntaxElement) {
     let kind: SyntaxKind = element.kind().into();
     print!("{:indent$}", "", indent = indent);
     match element {
-        NodeOrToken::Node(node) => {
+        SyntaxElement::Node(node) => {
             println!("- {:?}", kind);
             for child in node.children_with_tokens() {
                 print(indent + 2, child);
             }
         }
 
-        NodeOrToken::Token(token) => println!("- {:?} {:?}", token.text(), kind),
+        SyntaxElement::Token(token) => println!("- {:?} {:?}", token.text(), kind),
     }
 }
 

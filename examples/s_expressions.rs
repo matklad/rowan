@@ -9,12 +9,15 @@
 //! alongside this tutorial:
 //! https://github.com/rust-analyzer/rust-analyzer/blob/master/docs/dev/syntax.md
 
+use rowan::ArcBorrow;
+use std::sync::Arc;
+
 /// Currently, rowan doesn't have a hook to add your own interner,
 /// but `SmolStr` should be a "good enough" type for representing
 /// tokens.
 /// Additionally, rowan uses `TextSize` and `TextRange` types to
 /// represent utf8 offsets and ranges.
-use rowan::SmolStr;
+use smol_str::SmolStr;
 
 /// Let's start with defining all kinds of tokens and
 /// composite nodes.
@@ -74,7 +77,7 @@ use rowan::GreenNodeBuilder;
 /// The parse results are stored as a "green tree".
 /// We'll discuss working with the results later
 struct Parse {
-    green_node: GreenNode,
+    green_node: Arc<GreenNode>,
     #[allow(unused)]
     errors: Vec<String>,
 }
@@ -89,7 +92,7 @@ fn parse(text: &str) -> Parse {
         /// in *reverse* order.
         tokens: Vec<(SyntaxKind, SmolStr)>,
         /// the in-progress tree.
-        builder: GreenNodeBuilder<'static>,
+        builder: GreenNodeBuilder,
         /// the list of syntax errors we've accumulated
         /// so far.
         errors: Vec<String>,
@@ -176,7 +179,7 @@ fn parse(text: &str) -> Parse {
         /// Advance one token, adding it to the current branch of the tree builder.
         fn bump(&mut self) {
             let (kind, text) = self.tokens.pop().unwrap();
-            self.builder.token(kind.into(), text);
+            self.builder.token(kind.into(), &text);
         }
         /// Peek at the first unprocessed token
         fn current(&self) -> Option<SyntaxKind> {
@@ -323,7 +326,7 @@ impl Atom {
         self.text().parse().ok()
     }
     fn as_op(&self) -> Option<Op> {
-        let op = match self.text().as_str() {
+        let op = match self.text() {
             "+" => Op::Add,
             "-" => Op::Sub,
             "*" => Op::Mul,
@@ -332,9 +335,9 @@ impl Atom {
         };
         Some(op)
     }
-    fn text(&self) -> &SmolStr {
-        match &self.0.green().children().next() {
-            Some(rowan::NodeOrToken::Token(token)) => token.text(),
+    fn text(&self) -> &str {
+        match self.0.green().children().next() {
+            Some(rowan::NodeOrToken::Token(token)) => ArcBorrow::downgrade(token).text(),
             _ => unreachable!(),
         }
     }
