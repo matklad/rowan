@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    convert::TryInto,
     fmt,
     hash::{Hash, Hasher},
     iter, mem, ptr,
@@ -8,8 +9,8 @@ use std::{
 
 use crate::{
     green::{GreenElementRef, SyntaxKind},
-    Children, Direction, GreenNode, GreenToken, NodeOrToken, SmolStr, SyntaxText, TextRange,
-    TextSize, TokenAtOffset, WalkEvent,
+    Children, Direction, GreenNode, GreenToken, NodeOrToken, SmolStr, SyntaxPtr, SyntaxText,
+    TextRange, TextSize, TokenAtOffset, WalkEvent,
 };
 
 #[derive(Debug, Clone)]
@@ -249,6 +250,28 @@ impl SyntaxNode {
 
     pub fn green(&self) -> &GreenNode {
         unsafe { self.0.green.as_ref() }
+    }
+
+    pub fn ptr(&self) -> Option<SyntaxPtr> {
+        let indices = self
+            .ancestors()
+            .flat_map(|node| match node.0.kind {
+                Kind::Free { .. } => unreachable!(),
+                Kind::Root(..) => None,
+                Kind::Child { index, .. } => Some(index.try_into()),
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .ok()?;
+        SyntaxPtr::try_new(indices.into_iter().rev())
+    }
+
+    pub fn resolve_from_here(&self, ptr: &SyntaxPtr) -> Option<SyntaxElement> {
+        let mut here: SyntaxElement = self.clone().into();
+        for index in ptr.trace() {
+            here =
+                here.as_node().and_then(|node| node.children_with_tokens().nth(index as usize))?;
+        }
+        Some(here)
     }
 
     pub fn parent(&self) -> Option<SyntaxNode> {
@@ -546,6 +569,28 @@ impl SyntaxToken {
 
     pub fn green(&self) -> &GreenToken {
         self.parent.green().children().nth(self.index as usize).unwrap().as_token().unwrap()
+    }
+
+    pub fn ptr(&self) -> Option<SyntaxPtr> {
+        let indices = self
+            .ancestors()
+            .flat_map(|node| match node.0.kind {
+                Kind::Free { .. } => unreachable!(),
+                Kind::Root(..) => None,
+                Kind::Child { index, .. } => Some(index.try_into()),
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .ok()?;
+        SyntaxPtr::try_new(indices.into_iter().rev())
+    }
+
+    pub fn resolve_from_here(&self, ptr: &SyntaxPtr) -> Option<SyntaxElement> {
+        let mut here: SyntaxElement = self.clone().into();
+        for index in ptr.trace() {
+            here =
+                here.as_node().and_then(|node| node.children_with_tokens().nth(index as usize))?;
+        }
+        Some(here)
     }
 
     pub fn parent(&self) -> SyntaxNode {

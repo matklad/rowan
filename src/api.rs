@@ -1,8 +1,8 @@
 use std::{fmt, marker::PhantomData};
 
 use crate::{
-    cursor, Direction, GreenNode, GreenToken, NodeOrToken, SmolStr, SyntaxKind, SyntaxText,
-    TextRange, TextSize, TokenAtOffset, WalkEvent,
+    cursor, Direction, GreenNode, GreenToken, NodeOrToken, SmolStr, SyntaxKind, SyntaxPtr,
+    SyntaxText, TextRange, TextSize, TokenAtOffset, WalkEvent,
 };
 
 pub trait Language: Sized + Clone + Copy + fmt::Debug + Eq + Ord + std::hash::Hash {
@@ -169,6 +169,14 @@ impl<L: Language> SyntaxNode<L> {
         self.raw.green()
     }
 
+    pub fn ptr(&self) -> Option<SyntaxPtr> {
+        self.raw.ptr()
+    }
+
+    pub fn resolve_from_here(&self, ptr: &SyntaxPtr) -> Option<SyntaxElement<L>> {
+        self.raw.resolve_from_here(ptr).map(SyntaxElement::from)
+    }
+
     pub fn parent(&self) -> Option<SyntaxNode<L>> {
         self.raw.parent().map(Self::from)
     }
@@ -280,6 +288,14 @@ impl<L: Language> SyntaxToken<L> {
 
     pub fn green(&self) -> &GreenToken {
         self.raw.green()
+    }
+
+    pub fn ptr(&self) -> Option<SyntaxPtr> {
+        self.raw.ptr()
+    }
+
+    pub fn resolve_from_here(&self, ptr: &SyntaxPtr) -> Option<SyntaxElement<L>> {
+        self.raw.resolve_from_here(ptr).map(SyntaxElement::from)
     }
 
     pub fn parent(&self) -> SyntaxNode<L> {

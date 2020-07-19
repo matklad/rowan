@@ -12,6 +12,8 @@
 mod green;
 #[allow(unsafe_code)]
 pub mod cursor;
+#[allow(unsafe_code)]
+mod pointer;
 
 pub mod api;
 mod syntax_text;
@@ -30,6 +32,7 @@ pub use crate::{
         Language, SyntaxElement, SyntaxElementChildren, SyntaxNode, SyntaxNodeChildren, SyntaxToken,
     },
     green::{Checkpoint, Children, GreenNode, GreenNodeBuilder, GreenToken, SyntaxKind},
+    pointer::SyntaxPtr,
     syntax_text::SyntaxText,
     utility_types::{Direction, NodeOrToken, TokenAtOffset, WalkEvent},
 };
