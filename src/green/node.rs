@@ -320,18 +320,6 @@ impl<'a> Iterator for Children<'a> {
     {
         self.next_back()
     }
-
-    #[inline]
-    fn fold<Acc, Fold>(mut self, init: Acc, mut f: Fold) -> Acc
-    where
-        Fold: FnMut(Acc, Self::Item) -> Acc,
-    {
-        let mut accum = init;
-        while let Some(x) = self.next() {
-            accum = f(accum, x);
-        }
-        accum
-    }
 }
 
 impl<'a> DoubleEndedIterator for Children<'a> {

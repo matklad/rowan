@@ -338,12 +338,13 @@ impl List {
         self.0.children().filter_map(Sexp::cast)
     }
     fn eval(&self) -> Option<i64> {
-        let op = match self.sexps().nth(0)?.kind() {
+        let mut sexps = self.sexps();
+        let op = match sexps.next()?.kind() {
             SexpKind::Atom(atom) => atom.as_op()?,
             _ => return None,
         };
-        let arg1 = self.sexps().nth(1)?.eval()?;
-        let arg2 = self.sexps().nth(2)?.eval()?;
+        let arg1 = sexps.next()?.eval()?;
+        let arg2 = sexps.next()?.eval()?;
         let res = match op {
             Op::Add => arg1 + arg2,
             Op::Sub => arg1 - arg2,

@@ -43,7 +43,6 @@ impl SyntaxText {
     }
 
     pub fn char_at(&self, offset: TextSize) -> Option<char> {
-        let offset = offset.into();
         let mut start: TextSize = 0.into();
         let res = self.try_for_each_chunk(|chunk| {
             let end = start + TextSize::of(chunk);
@@ -59,7 +58,7 @@ impl SyntaxText {
 
     pub fn slice<R: private::SyntaxTextRange>(&self, range: R) -> SyntaxText {
         let start = range.start().unwrap_or_default();
-        let end = range.end().unwrap_or(self.len());
+        let end = range.end().unwrap_or_else(|| self.len());
         assert!(start <= end);
         let len = end - start;
         let start = self.range.start() + start;
@@ -97,6 +96,7 @@ impl SyntaxText {
 
     pub fn for_each_chunk<F: FnMut(&str)>(&self, mut f: F) {
         enum Void {}
+        #[allow(clippy::unit_arg)]
         match self.try_for_each_chunk(|chunk| Ok::<(), Void>(f(chunk))) {
             Ok(()) => (),
             Err(void) => match void {},
@@ -285,10 +285,12 @@ mod tests {
         fn do_check(t1: &[&str], t2: &[&str]) {
             let t1 = build_tree(t1).text();
             let t2 = build_tree(t2).text();
-            let expected = t1.to_string() == t2.to_string();
+            let t1_s = t1.to_string();
+            let t2_s = t2.to_string();
+            let expected = t1_s == t2_s;
             let actual = t1 == t2;
             assert_eq!(expected, actual, "`{}` (SyntaxText) `{}` (SyntaxText)", t1, t2);
-            let actual = t1 == &*t2.to_string();
+            let actual = t1 == t2_s.as_str();
             assert_eq!(expected, actual, "`{}` (SyntaxText) `{}` (&str)", t1, t2);
         }
         fn check(t1: &[&str], t2: &[&str]) {
